@@ -19,7 +19,7 @@ log.setLevel(SRC_LOG_LEVELS["MODELS"])
 router = APIRouter()
 
 
-PAGE_ITEM_COUNT = 30
+PAGE_ITEM_COUNT = 10
 
 
 @router.get("/", response_model=CharityListResponse)
@@ -28,7 +28,6 @@ async def get_charities(
     order_by: Optional[str] = None,
     direction: Optional[str] = None,
     page: Optional[int] = 1,
-    user=Depends(get_admin_user),
 ):
     """
     Get all charities

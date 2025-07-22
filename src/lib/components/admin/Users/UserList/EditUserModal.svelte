@@ -6,6 +6,7 @@
 
 	import { updateUserById } from '$lib/apis/users';
 
+  import CharityAutocomplete from '$lib/components/CharityAutocomplete.svelte';
 	import Modal from '$lib/components/common/Modal.svelte';
 	import localizedFormat from 'dayjs/plugin/localizedFormat';
 	import XMark from '$lib/components/icons/XMark.svelte';
@@ -23,10 +24,18 @@
 		role: 'pending',
 		name: '',
 		email: '',
-		password: ''
+		password: '',
+    profile: null
 	};
 
+  let selectedCharity = null;
+
 	const submitHandler = async () => {
+    // User profile must exist before the assignment of selectedCharity
+    if (!_user.profile) _user.profile = {};
+
+   _user.profile.charity = selectedCharity; 
+
 		const res = await updateUserById(localStorage.token, selectedUser.id, _user).catch((error) => {
 			toast.error(`${error}`);
 		});
@@ -37,12 +46,16 @@
 		}
 	};
 
-	onMount(() => {
+  onMount(() => {
 		if (selectedUser) {
 			_user = selectedUser;
 			_user.password = '';
-		}
-	});
+      selectedCharity = _user.profile?.charity || null;
+    }
+  });
+
+
+
 </script>
 
 <Modal size="sm" bind:show>
@@ -104,6 +117,14 @@
 									</select>
 								</div>
 							</div>
+
+							<div class="flex flex-col w-full">
+								<div class=" mb-1 text-xs text-gray-500">{$i18n.t('Charity')}</div>
+
+								<div class="flex-1">
+                  <CharityAutocomplete bind:value={selectedCharity} />
+                </div>
+              </div>
 
 							<div class="flex flex-col w-full">
 								<div class=" mb-1 text-xs text-gray-500">{$i18n.t('Email')}</div>

@@ -1,7 +1,6 @@
 import { WEBUI_API_BASE_URL } from '$lib/constants';
 
 export const getCharities = async (
-	token: string,
 	query?: string,
 	orderBy?: string,
 	direction?: string,
@@ -10,7 +9,7 @@ export const getCharities = async (
 	let error = null;
 	let res = null;
 
-	let searchParams = new URLSearchParams();
+	const searchParams = new URLSearchParams();
 
 	searchParams.set('page', `${page}`);
 
@@ -29,12 +28,10 @@ export const getCharities = async (
 	res = await fetch(`${WEBUI_API_BASE_URL}/charities/?${searchParams.toString()}`, {
 		method: 'GET',
 		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`
+			'Content-Type': 'application/json'
 		}
 	})
 		.then(async (res) => {
-			console.log('Fetch response:', res);
 			if (!res.ok) throw await res.json();
 			return res.json();
 		})

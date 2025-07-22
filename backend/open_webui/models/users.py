@@ -1,6 +1,9 @@
 import time
 from typing import Optional
 
+from sqlalchemy.orm import relationship, selectinload
+
+from open_webui.models.profiles import UserProfile
 from open_webui.internal.db import Base, JSONField, get_db
 
 
@@ -37,12 +40,26 @@ class User(Base):
 
     oauth_sub = Column(Text, unique=True)
 
+    profile = relationship("UserProfile", uselist=False, back_populates="user")
+
 
 class UserSettings(BaseModel):
     ui: Optional[dict] = {}
     model_config = ConfigDict(extra="allow")
     pass
 
+
+class CharityModel(BaseModel):
+    id: int
+    name: str
+    charity_id: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+class UserProfileModel(BaseModel):
+    charity: Optional[CharityModel] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 class UserModel(BaseModel):
     id: str
@@ -60,6 +77,8 @@ class UserModel(BaseModel):
     info: Optional[dict] = None
 
     oauth_sub: Optional[str] = None
+
+    profile: Optional[UserProfileModel] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -100,6 +119,7 @@ class UserUpdateForm(BaseModel):
     email: str
     profile_image_url: str
     password: Optional[str] = None
+    profile: Optional[UserProfileModel] = None
 
 
 class UsersTable:
@@ -174,7 +194,9 @@ class UsersTable:
         limit: Optional[int] = None,
     ) -> UserListResponse:
         with get_db() as db:
-            query = db.query(User)
+            query = db.query(User).options(
+                selectinload(User.profile).selectinload(UserProfile.charity)
+            )
 
             if filter:
                 query_key = filter.get("query")
@@ -400,5 +422,25 @@ class UsersTable:
             else:
                 return None
 
+    def set_user_charity(self, user_id: str, charity_id: Optional[int]) -> bool:
+        """
+        Set the user's charity. Creates a UserProfile for the user if it does not exist.
+        """
+        try:
+            with get_db() as db:
+                user = db.query(User).filter_by(id=user_id).first()
+                if not user:
+                    return False
+
+                # Ensure UserProfile exists
+                if not user.profile:
+                    user.profile = UserProfile(user_id=user.id)
+
+                user.profile.charity_id = charity_id
+                db.commit()
+                return True
+        except Exception as e:
+            print("Error in set_user_charity:", e)
+            return False
 
 Users = UsersTable()

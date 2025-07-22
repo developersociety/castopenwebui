@@ -18,6 +18,8 @@
 
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import OnBoarding from '$lib/components/OnBoarding.svelte';
+  import CharityAutocomplete from '$lib/components/CharityAutocomplete.svelte';
+
 
 	const i18n = getContext('i18n');
 
@@ -63,12 +65,16 @@
 	};
 
 	const signUpHandler = async () => {
-		const sessionUser = await userSignUp(name, email, password, generateInitialsImage(name)).catch(
-			(error) => {
-				toast.error(`${error}`);
-				return null;
-			}
-		);
+		const sessionUser = await userSignUp(
+			name,
+			email,
+			password,
+			generateInitialsImage(name),
+			selectedCharity?.id
+		).catch((error) => {
+			toast.error(`${error}`);
+			return null;
+		});
 
 		await setSessionUser(sessionUser);
 	};
@@ -156,6 +162,10 @@
 			onboarding = $config?.onboarding ?? false;
 		}
 	});
+
+	// Charities code
+	let selectedCharity = null;
+
 </script>
 
 <svelte:head>
@@ -293,6 +303,13 @@
 													placeholder={$i18n.t('Enter Your Email')}
 													required
 												/>
+											</div>
+										{/if}
+                    {#if mode === 'signup' && !$config?.onboarding}
+
+											<div class="mb-2">
+												<label class="text-sm font-medium text-left mb-1 block"> Charity </label>
+                      <CharityAutocomplete bind:value={selectedCharity} />
 											</div>
 										{/if}
 

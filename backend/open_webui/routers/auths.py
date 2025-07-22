@@ -5,6 +5,8 @@ import datetime
 import logging
 from aiohttp import ClientSession
 
+from open_webui.models.charities import Charities
+from open_webui.models.profiles import UserProfileForm, UserProfiles
 from open_webui.models.auths import (
     AddUserForm,
     ApiKey,
@@ -580,6 +582,13 @@ async def signup(request: Request, response: Response, form_data: SignupForm):
     if Users.get_user_by_email(form_data.email.lower()):
         raise HTTPException(400, detail=ERROR_MESSAGES.EMAIL_TAKEN)
 
+    # Validate if charity exists
+    charity =  None
+    if getattr(form_data, 'charity_id', None):
+        charity = Charities.get_charity_by_id(form_data.charity_id)
+        if not charity:
+            raise HTTPException(status_code=400, detail=ERROR_MESSAGES.CHARITY_NOT_FOUND)
+
     try:
         role = (
             "admin" if user_count == 0 else request.app.state.config.DEFAULT_USER_ROLE
@@ -647,6 +656,11 @@ async def signup(request: Request, response: Response, form_data: SignupForm):
             if user_count == 0:
                 # Disable signup after the first user is created
                 request.app.state.config.ENABLE_SIGNUP = False
+
+            # Create user profile and set the charity
+            if charity:
+                profile_form = UserProfileForm(user_id=user.id, charity_id=charity.id)
+                UserProfiles.add(form_data=profile_form)
 
             return {
                 "token": token,
@@ -749,6 +763,10 @@ async def add_user(form_data: AddUserForm, user=Depends(get_admin_user)):
         )
 
         if user:
+            charity_id = getattr(form_data, "charity_id", None)
+            if charity_id:
+                Users.set_user_charity(user.id, charity_id)
+
             token = create_token(data={"id": user.id})
             return {
                 "token": token,

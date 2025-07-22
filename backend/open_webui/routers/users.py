@@ -399,10 +399,17 @@ async def update_user_by_id(
                 "name": form_data.name,
                 "email": form_data.email.lower(),
                 "profile_image_url": form_data.profile_image_url,
+
             },
         )
 
         if updated_user:
+            profile = getattr(form_data, "profile", None)
+            charity = getattr(profile, "charity", None)
+            charity_id = getattr(charity, "id", None)
+
+            Users.set_user_charity(user_id, charity_id)
+
             return updated_user
 
         raise HTTPException(

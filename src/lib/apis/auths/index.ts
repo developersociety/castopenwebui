@@ -290,7 +290,8 @@ export const userSignUp = async (
 	name: string,
 	email: string,
 	password: string,
-	profile_image_url: string
+	profile_image_url: string,
+	charity?: number, // optional
 ) => {
 	let error = null;
 
@@ -303,6 +304,7 @@ export const userSignUp = async (
 		body: JSON.stringify({
 			name: name,
 			email: email,
+      charity_id: charity,
 			password: password,
 			profile_image_url: profile_image_url
 		})
@@ -358,7 +360,8 @@ export const addUser = async (
 	email: string,
 	password: string,
 	role: string = 'pending',
-	profile_image_url: null | string = null
+	profile_image_url: null | string = null,
+  charity_id: null | number = null
 ) => {
 	let error = null;
 
@@ -373,7 +376,8 @@ export const addUser = async (
 			email: email,
 			password: password,
 			role: role,
-			...(profile_image_url && { profile_image_url: profile_image_url })
+			...(profile_image_url && { profile_image_url: profile_image_url }),
+      charity_id: charity_id,
 		})
 	})
 		.then(async (res) => {

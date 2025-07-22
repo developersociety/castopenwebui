@@ -103,6 +103,7 @@ class ERROR_MESSAGES(str, Enum):
         "Duplicate content detected. Please provide unique content to proceed."
     )
     FILE_NOT_PROCESSED = "Extracted content is not available for this file. Please ensure that the file is processed before proceeding."
+    CHARITY_NOT_FOUND = "Charity not found"
 
 
 class TASKS(str, Enum):

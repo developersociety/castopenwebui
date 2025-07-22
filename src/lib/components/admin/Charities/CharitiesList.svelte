@@ -80,7 +80,7 @@
 
 	const getCharityList = async () => {
 		try {
-			const res = await getCharities(localStorage.token, query, orderBy, direction, page).catch(
+			const res = await getCharities(query, orderBy, direction, page).catch(
 				(error) => {
 					toast.error(`${error}`);
 					return null;
@@ -128,6 +128,7 @@
 		getCharityList();
 	}}
 />
+
 
 {#if ($config?.license_metadata?.seats ?? null) !== null && total && total > $config?.license_metadata?.seats}
 	<div class=" mt-1 mb-2 text-xs text-red-500">
@@ -324,7 +325,7 @@
 						<div class="flex gap-1.5 items-center">
 							{$i18n.t('Is imported?')}
 
-							{#if orderBy === 'is_imported'}
+							{#if orderBy === 'oauth_sub'}
 								<span class="font-normal"
 									>{#if direction === 'asc'}
 										<ChevronUp className="size-2" />

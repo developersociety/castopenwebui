@@ -69,18 +69,14 @@ class CharitiesTable:
         form_data: CharityForm,
     ) -> Optional[CharityModel]:
         with get_db() as db:
-            charity = CharityModel(
-                **{
-                    **form_data.model_dump(exclude_none=True),
-                }
-            )
-            result = Charity(**charity.model_dump())
-            db.add(result)
-            db.commit()
-            db.refresh(result)
-            if result:
-                return charity.copy(update={"id": result.id})
-            else:
+            try:
+                charity = Charity(**form_data.model_dump(exclude_none=True))
+                db.add(charity)
+                db.commit()
+                db.refresh(charity)
+                return CharityModel.model_validate(charity)
+            except IntegrityError:
+                db.rollback()
                 return None
 
     def get_charity_by_id(self, id: int) -> Optional[CharityModel]:

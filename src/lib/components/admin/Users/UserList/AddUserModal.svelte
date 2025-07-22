@@ -6,6 +6,7 @@
 
 	import { WEBUI_BASE_URL } from '$lib/constants';
 
+  import CharityAutocomplete from '$lib/components/CharityAutocomplete.svelte';
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import Modal from '$lib/components/common/Modal.svelte';
 	import { generateInitialsImage } from '$lib/utils';
@@ -19,12 +20,14 @@
 	let loading = false;
 	let tab = '';
 	let inputFiles;
+  let selectedCharity = null;
 
 	let _user = {
 		name: '',
 		email: '',
 		password: '',
-		role: 'user'
+		role: 'user',
+    profile: null
 	};
 
 	$: if (show) {
@@ -32,7 +35,8 @@
 			name: '',
 			email: '',
 			password: '',
-			role: 'user'
+			role: 'user',
+			profile: null,
 		};
 	}
 
@@ -51,7 +55,8 @@
 				_user.email,
 				_user.password,
 				_user.role,
-				generateInitialsImage(_user.name)
+				generateInitialsImage(_user.name),
+        selectedCharity?.id,
 			).catch((error) => {
 				toast.error(`${error}`);
 			});
@@ -188,6 +193,16 @@
 									</select>
 								</div>
 							</div>
+
+							<div class="flex flex-col w-full mb-3">
+								<div class=" mb-1 text-xs text-gray-500">{$i18n.t('Charity')}</div>
+
+								<div class="flex-1">
+                  <CharityAutocomplete bind:value={selectedCharity} />
+
+								</div>
+							</div>
+
 
 							<div class="flex flex-col w-full mt-1">
 								<div class=" mb-1 text-xs text-gray-500">{$i18n.t('Name')}</div>
