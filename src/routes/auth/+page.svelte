@@ -18,8 +18,7 @@
 
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import OnBoarding from '$lib/components/OnBoarding.svelte';
-  import CharityAutocomplete from '$lib/components/CharityAutocomplete.svelte';
-
+	import CharityAutocomplete from '$lib/components/CharityAutocomplete.svelte';
 
 	const i18n = getContext('i18n');
 
@@ -165,7 +164,6 @@
 
 	// Charities code
 	let selectedCharity = null;
-
 </script>
 
 <svelte:head>
@@ -305,11 +303,10 @@
 												/>
 											</div>
 										{/if}
-                    {#if mode === 'signup' && !$config?.onboarding}
-
+										{#if mode === 'signup' && !$config?.onboarding}
 											<div class="mb-2">
 												<label class="text-sm font-medium text-left mb-1 block"> Charity </label>
-                      <CharityAutocomplete bind:value={selectedCharity} />
+												<CharityAutocomplete bind:value={selectedCharity} />
 											</div>
 										{/if}
 

@@ -297,15 +297,12 @@
 							{/if}
 						</div>
 					</th>
-					<th
-						scope="col"
-						class="px-3 py-1.5 cursor-pointer select-none"
-					>
+					<th scope="col" class="px-3 py-1.5 cursor-pointer select-none">
 						<div class="flex gap-1.5 items-center">
 							{$i18n.t('Charity')}
-								<span class="invisible">
-									<ChevronUp className="size-2" />
-								</span>
+							<span class="invisible">
+								<ChevronUp className="size-2" />
+							</span>
 						</div>
 					</th>
 
@@ -415,7 +412,7 @@
 							</div>
 						</td>
 						<td class=" px-3 py-1"> {user.email} </td>
-						<td class=" px-3 py-1"> {user?.profile?.charity?.name ?? '' } </td>
+						<td class=" px-3 py-1"> {user?.profile?.charity?.name ?? ''} </td>
 
 						<td class=" px-3 py-1">
 							{dayjs(user.last_active_at * 1000).fromNow()}

@@ -1,6 +1,7 @@
 import logging
 from typing import Optional
 
+from open_webui.models.profiles import UserProfiles
 from open_webui.models.auths import Auths
 from open_webui.models.groups import Groups
 from open_webui.models.chats import Chats
@@ -408,7 +409,7 @@ async def update_user_by_id(
             charity = getattr(profile, "charity", None)
             charity_id = getattr(charity, "id", None)
 
-            Users.set_user_charity(user_id, charity_id)
+            UserProfiles.set_user_charity(user_id, charity_id)
 
             return updated_user
 

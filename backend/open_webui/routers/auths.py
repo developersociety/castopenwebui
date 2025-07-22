@@ -6,7 +6,7 @@ import logging
 from aiohttp import ClientSession
 
 from open_webui.models.charities import Charities
-from open_webui.models.profiles import UserProfileForm, UserProfiles
+from open_webui.models.profiles import UserProfiles
 from open_webui.models.auths import (
     AddUserForm,
     ApiKey,
@@ -658,9 +658,8 @@ async def signup(request: Request, response: Response, form_data: SignupForm):
                 request.app.state.config.ENABLE_SIGNUP = False
 
             # Create user profile and set the charity
-            if charity:
-                profile_form = UserProfileForm(user_id=user.id, charity_id=charity.id)
-                UserProfiles.add(form_data=profile_form)
+            UserProfiles.set_user_charity(user.id, getattr(charity, "id", None))
+
 
             return {
                 "token": token,
@@ -764,8 +763,7 @@ async def add_user(form_data: AddUserForm, user=Depends(get_admin_user)):
 
         if user:
             charity_id = getattr(form_data, "charity_id", None)
-            if charity_id:
-                Users.set_user_charity(user.id, charity_id)
+            UserProfiles.set_user_charity(user.id, charity_id)
 
             token = create_token(data={"id": user.id})
             return {

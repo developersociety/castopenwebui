@@ -1,12 +1,10 @@
 from typing import Optional
 
 from open_webui.internal.db import Base, get_db
-from sqlalchemy.orm import relationship
-
-from pydantic import BaseModel, ConfigDict, field_validator
-from open_webui.internal.db import Base
-
+from open_webui.models.charities import CharityModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy.orm import relationship
 
 
 class UserProfile(Base):
@@ -26,24 +24,37 @@ class UserProfileForm(BaseModel):
 
 
 class UserProfileModel(BaseModel):
-    id: Optional[int] = None
-    user_id: str
-    charity_id: Optional[int] = None
+    charity: Optional[CharityModel] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class UserProfileTable:
-    def add(
-        self,
-        form_data: UserProfileForm,
-    ) -> Optional[UserProfileModel]:
-        with get_db() as db:
-            user_profile = UserProfile(**form_data.model_dump(exclude_none=True))
-            db.add(user_profile)
-            db.commit()
-            db.refresh(user_profile)  # Get DB-generated fields like id
-            return UserProfileModel.model_validate(user_profile)
+    def set_user_charity(self, user_id: str, charity_id: Optional[int]) -> bool:
+        """
+        Set the user's charity. Creates a UserProfile for the user if it does not exist.
+        """
+        from open_webui.models.users import User
+
+        try:
+            with get_db() as db:
+                # Check if user exists
+                user = db.query(User).filter_by(id=user_id).first()
+                if not user:
+                    return False
+
+                # Get or create the UserProfile
+                user_profile = db.query(UserProfile).filter_by(user_id=user_id).first()
+                if not user_profile:
+                    user_profile = UserProfile(user_id=user_id)
+                    db.add(user_profile)
+
+                user_profile.charity_id = charity_id
+                db.commit()
+                return True
+        except Exception as e:
+            print("Error in set_user_charity:", e)
+            return False
 
 
 UserProfiles = UserProfileTable()
