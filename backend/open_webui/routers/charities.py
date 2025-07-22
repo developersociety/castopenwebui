@@ -19,7 +19,7 @@ log.setLevel(SRC_LOG_LEVELS["MODELS"])
 router = APIRouter()
 
 
-PAGE_ITEM_COUNT = 10
+PAGE_ITEM_COUNT = 20
 
 
 @router.get("/", response_model=CharityListResponse)

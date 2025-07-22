@@ -1,39 +1,23 @@
 <script>
-	import { WEBUI_BASE_URL } from '$lib/constants';
-	import { WEBUI_NAME, config, user, showSidebar } from '$lib/stores';
-	import { goto } from '$app/navigation';
-	import { onMount, getContext } from 'svelte';
-
-	import dayjs from 'dayjs';
-	import relativeTime from 'dayjs/plugin/relativeTime';
-	import localizedFormat from 'dayjs/plugin/localizedFormat';
-	dayjs.extend(relativeTime);
-	dayjs.extend(localizedFormat);
+	import { user } from '$lib/stores';
+	import { getContext } from 'svelte';
 
 	import { toast } from 'svelte-sonner';
 
-	import { updateUserRole, getUsers, deleteUserById } from '$lib/apis/users';
 	import { getCharities, deleteCharityById } from '$lib/apis/charities';
 
 	import Pagination from '$lib/components/common/Pagination.svelte';
-	import ChatBubbles from '$lib/components/icons/ChatBubbles.svelte';
 	import Tooltip from '$lib/components/common/Tooltip.svelte';
 
 	import EditCharityModal from '$lib/components/admin/Charities/CharityList/EditCharityModal.svelte';
 	import AddCharityModal from '$lib/components/admin/Charities/CharityList/AddCharityModal.svelte';
 
 	import ConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
-	import RoleUpdateConfirmDialog from '$lib/components/common/ConfirmDialog.svelte';
 
-	import Badge from '$lib/components/common/Badge.svelte';
 	import Plus from '$lib/components/icons/Plus.svelte';
 	import ChevronUp from '$lib/components/icons/ChevronUp.svelte';
 	import ChevronDown from '$lib/components/icons/ChevronDown.svelte';
-	import About from '$lib/components/chat/Settings/About.svelte';
-	import Banner from '$lib/components/common/Banner.svelte';
-	import Markdown from '$lib/components/chat/Messages/Markdown.svelte';
 	import Spinner from '$lib/components/common/Spinner.svelte';
-	import { deleteChatById } from '$lib/apis/chats';
 
 	const i18n = getContext('i18n');
 
@@ -43,15 +27,15 @@
 	let total = null;
 
 	let query = '';
-	let orderBy = 'created_at'; // default sort key
-	let direction = 'asc'; // default sort order
+	let orderBy = 'name';
+	let direction = 'asc';
 
 	let selectedCharity = null;
 
 	let showDeleteConfirmDialog = false;
 	let showAddCharityModal = false;
 
-	let showEditUserModal = false;
+	let showEditCharityModal = false;
 
 	const deleteCharityHandler = async (id) => {
 		const res = await deleteCharityById(localStorage.token, id).catch((error) => {
@@ -59,7 +43,6 @@
 			return null;
 		});
 
-		// if the user is deleted and the current page has only one user, go back to the previous page
 		if (charities.length === 1 && page > 1) {
 			page -= 1;
 		}
@@ -80,12 +63,10 @@
 
 	const getCharityList = async () => {
 		try {
-			const res = await getCharities(query, orderBy, direction, page).catch(
-				(error) => {
-					toast.error(`${error}`);
-					return null;
-				}
-			);
+			const res = await getCharities(query, orderBy, direction, page).catch((error) => {
+				toast.error(`${error}`);
+				return null;
+			});
 
 			if (res) {
 				charities = res.charities;
@@ -114,7 +95,7 @@
 
 {#key selectedCharity}
 	<EditCharityModal
-		bind:show={showEditUserModal}
+		bind:show={showEditCharityModal}
 		{selectedCharity}
 		on:save={async () => {
 			getCharityList();
@@ -129,22 +110,6 @@
 	}}
 />
 
-
-{#if ($config?.license_metadata?.seats ?? null) !== null && total && total > $config?.license_metadata?.seats}
-	<div class=" mt-1 mb-2 text-xs text-red-500">
-		<Banner
-			className="mx-0"
-			banner={{
-				type: 'error',
-				title: 'License Error',
-				content:
-					'Exceeded the number of seats in your license. Please contact support to increase the number of seats.',
-				dismissable: true
-			}}
-		/>
-	</div>
-{/if}
-
 {#if charities === null || total === null}
 	<div class="my-10">
 		<Spinner className="size-5" />
@@ -156,22 +121,6 @@
 				{$i18n.t('Charities')}
 			</div>
 			<div class="flex self-center w-[1px] h-6 mx-2.5 bg-gray-50 dark:bg-gray-850" />
-
-			{#if ($config?.license_metadata?.seats ?? null) !== null}
-				{#if total > $config?.license_metadata?.seats}
-					<span class="text-lg font-medium text-red-500"
-						>{total} of {$config?.license_metadata?.seats}
-						<span class="text-sm font-normal">available charities</span></span
-					>
-				{:else}
-					<span class="text-lg font-medium text-gray-500 dark:text-gray-300"
-						>{total} of {$config?.license_metadata?.seats}
-						<span class="text-sm font-normal">available charities</span></span
-					>
-				{/if}
-			{:else}
-				<span class="text-lg font-medium text-gray-500 dark:text-gray-300">{total}</span>
-			{/if}
 		</div>
 
 		<div class="flex gap-1">
@@ -325,7 +274,7 @@
 						<div class="flex gap-1.5 items-center">
 							{$i18n.t('Is imported?')}
 
-							{#if orderBy === 'oauth_sub'}
+							{#if orderBy === 'is_imported'}
 								<span class="font-normal"
 									>{#if direction === 'asc'}
 										<ChevronUp className="size-2" />
@@ -353,7 +302,7 @@
 									class=" translate-y-0.5"
 									on:click={() => {
 										selectedCharity = charity;
-										showEditUserModal = !showEditUserModal;
+										showEditCharityModal = !showEditCharityModal;
 									}}
 								>
 									<div class=" font-medium self-center">{charity.name}</div>
@@ -378,7 +327,7 @@
 									<button
 										class="self-center w-fit text-sm px-2 py-2 hover:bg-black/5 dark:hover:bg-white/5 rounded-xl"
 										on:click={async () => {
-											showEditUserModal = !showEditUserModal;
+											showEditCharityModal = !showEditCharityModal;
 											selectedCharity = charity;
 										}}
 									>
