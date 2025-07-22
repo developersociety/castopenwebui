@@ -121,6 +121,7 @@
 				{$i18n.t('Charities')}
 			</div>
 			<div class="flex self-center w-[1px] h-6 mx-2.5 bg-gray-50 dark:bg-gray-850" />
+			<span class="text-lg font-medium text-gray-500 dark:text-gray-300">{total}</span>
 		</div>
 
 		<div class="flex gap-1">
