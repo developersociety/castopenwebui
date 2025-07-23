@@ -1,5 +1,6 @@
 import logging
 from typing import Optional
+from urllib.parse import urlparse
 
 from open_webui.env import SRC_LOG_LEVELS
 from open_webui.internal.db import Base, get_db
@@ -31,6 +32,19 @@ class CharityModel(BaseModel):
     is_imported: bool = False
 
     model_config = ConfigDict(from_attributes=True)
+
+    def get_website_domain(self):
+        website = getattr(self, "website", None)
+        if not website:
+            return None
+        parsed = urlparse(website)
+        domain = parsed.hostname
+        if not domain:
+            return None
+        domain = domain.lower()
+        if domain.startswith("www."):
+            domain = domain[4:]
+        return domain
 
 
 class CharityResponse(BaseModel):

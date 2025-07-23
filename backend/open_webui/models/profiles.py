@@ -3,11 +3,12 @@ from typing import Optional
 from open_webui.internal.db import Base, get_db
 from open_webui.models.charities import CharityModel
 from pydantic import BaseModel, ConfigDict
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Boolean, Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 
 class UserProfile(Base):
+
     __tablename__ = "user_profile"
     id = Column(Integer, primary_key=True)
 
@@ -16,6 +17,8 @@ class UserProfile(Base):
 
     user_id = Column(Integer, ForeignKey("user.id"))
     user = relationship("User", back_populates="profile")
+
+    is_email_verified = Column(Boolean, default=False)
 
 
 class UserProfileForm(BaseModel):
@@ -28,9 +31,23 @@ class UserProfileModel(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+    def get_email_domain(self, user):
+        if not user.email:
+            return None
+
+        email = user.email.strip().lower()
+
+        try:
+            domain = email.split("@")[1]
+        except IndexError:
+            return None
+        return domain
+
 
 class UserProfileTable:
-    def set_user_charity(self, user_id: str, charity_id: Optional[int]) -> bool:
+    def set_user_charity(
+        self, user_id: str, charity_id: Optional[int]
+    ) -> Optional[UserProfileModel]:
         """
         Set the user's charity. Creates a UserProfile for the user if it does not exist.
         """
@@ -51,10 +68,11 @@ class UserProfileTable:
 
                 user_profile.charity_id = charity_id
                 db.commit()
-                return True
+                db.refresh(user_profile)
+                return UserProfileModel.model_validate(user_profile)
         except Exception as e:
             print("Error in set_user_charity:", e)
-            return False
+            return None
 
 
 UserProfiles = UserProfileTable()

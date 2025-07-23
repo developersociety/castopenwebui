@@ -658,8 +658,14 @@ async def signup(request: Request, response: Response, form_data: SignupForm):
                 request.app.state.config.ENABLE_SIGNUP = False
 
             # Create user profile and set the charity
-            UserProfiles.set_user_charity(user.id, getattr(charity, "id", None))
+            user_profile = UserProfiles.set_user_charity(user.id, getattr(charity, "id", None))
 
+            if charity and user_profile:
+                charity_domain = charity.get_website_domain()
+                user_email_domain = user_profile.get_email_domain(user=user)
+                if charity_domain is not None and user_email_domain is not None:
+                    if charity_domain == user_email_domain:
+                        user = Users.update_user_role_by_id(user.id, 'user')
 
             return {
                 "token": token,
