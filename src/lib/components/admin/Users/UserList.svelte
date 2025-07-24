@@ -306,6 +306,15 @@
 						</div>
 					</th>
 
+					<th scope="col" class="px-3 py-1.5 cursor-pointer select-none">
+						<div class="flex gap-1.5 items-center">
+							{$i18n.t('Is email verified?')}
+							<span class="invisible">
+								<ChevronUp className="size-2" />
+							</span>
+						</div>
+					</th>
+
 					<th
 						scope="col"
 						class="px-3 py-1.5 cursor-pointer select-none"
@@ -413,6 +422,7 @@
 						</td>
 						<td class=" px-3 py-1"> {user.email} </td>
 						<td class=" px-3 py-1"> {user?.profile?.charity?.name ?? ''} </td>
+						<td class=" px-3 py-1"> {user?.profile?.is_email_verified} </td>
 
 						<td class=" px-3 py-1">
 							{dayjs(user.last_active_at * 1000).fromNow()}

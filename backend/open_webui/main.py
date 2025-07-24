@@ -86,6 +86,7 @@ from open_webui.routers import (
     users,
     utils,
     charities,
+    profiles,
 )
 
 from open_webui.routers.retrieval import (
@@ -1212,6 +1213,7 @@ app.include_router(
 )
 app.include_router(utils.router, prefix="/api/v1/utils", tags=["utils"])
 app.include_router(charities.router, prefix="/api/v1/charities", tags=["charities"])
+app.include_router(profiles.router, prefix="/api/v1/profiles", tags=["profiles"])
 
 
 try:

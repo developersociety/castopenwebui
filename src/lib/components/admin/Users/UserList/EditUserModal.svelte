@@ -25,17 +25,10 @@
 		name: '',
 		email: '',
 		password: '',
-		profile: null
+		profile: {}
 	};
 
-	let selectedCharity = null;
-
 	const submitHandler = async () => {
-		// User profile must exist before the assignment of selectedCharity
-		if (!_user.profile) _user.profile = {};
-
-		_user.profile.charity = selectedCharity;
-
 		const res = await updateUserById(localStorage.token, selectedUser.id, _user).catch((error) => {
 			toast.error(`${error}`);
 		});
@@ -50,7 +43,6 @@
 		if (selectedUser) {
 			_user = selectedUser;
 			_user.password = '';
-			selectedCharity = _user.profile?.charity || null;
 		}
 	});
 </script>
@@ -119,7 +111,7 @@
 								<div class=" mb-1 text-xs text-gray-500">{$i18n.t('Charity')}</div>
 
 								<div class="flex-1">
-									<CharityAutocomplete bind:value={selectedCharity} />
+									<CharityAutocomplete bind:value={_user.profile.charity} />
 								</div>
 							</div>
 
@@ -135,6 +127,16 @@
 										autocomplete="off"
 										required
 									/>
+								</div>
+							</div>
+
+							<div class="flex flex-col w-full">
+								<div class=" mb-1 text-xs text-gray-500">{$i18n.t('Is email verified?')}</div>
+
+								<div class="flex-1">
+									{#if _user.profile}
+										<input type="checkbox" bind:checked={_user.profile.is_email_verified} />
+									{/if}
 								</div>
 							</div>
 

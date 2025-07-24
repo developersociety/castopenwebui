@@ -408,8 +408,9 @@ async def update_user_by_id(
             profile = getattr(form_data, "profile", None)
             charity = getattr(profile, "charity", None)
             charity_id = getattr(charity, "id", None)
+            is_email_verified = getattr(profile, "is_email_verified", None)
 
-            UserProfiles.set_user_charity(user_id, charity_id)
+            UserProfiles.update_or_create_user_profile(user_id, charity_id, is_email_verified)
 
             return updated_user
 

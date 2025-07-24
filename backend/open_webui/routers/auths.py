@@ -5,6 +5,7 @@ import datetime
 import logging
 from aiohttp import ClientSession
 
+from open_webui.utils.profiles import process_signin, process_signup
 from open_webui.models.charities import Charities
 from open_webui.models.profiles import UserProfiles
 from open_webui.models.auths import (
@@ -73,6 +74,7 @@ log.setLevel(SRC_LOG_LEVELS["MAIN"])
 class SessionUserResponse(Token, UserResponse):
     expires_at: Optional[int] = None
     permissions: Optional[dict] = None
+    is_email_verified: Optional[bool] = None
 
 
 @router.get("/", response_model=SessionUserResponse)
@@ -114,6 +116,8 @@ async def get_session_user(
         user.id, request.app.state.config.USER_PERMISSIONS
     )
 
+    user_profile = UserProfiles.get_userprofile_by_email(user.email)
+
     return {
         "token": token,
         "token_type": "Bearer",
@@ -124,6 +128,7 @@ async def get_session_user(
         "role": user.role,
         "profile_image_url": user.profile_image_url,
         "permissions": user_permissions,
+        "is_email_verified": getattr(user_profile, "is_email_verified", False),
     }
 
 
@@ -536,6 +541,9 @@ async def signin(request: Request, response: Response, form_data: SigninForm):
             user.id, request.app.state.config.USER_PERMISSIONS
         )
 
+        # DEV process signin
+        user_profile = process_signin(user)
+
         return {
             "token": token,
             "token_type": "Bearer",
@@ -546,6 +554,7 @@ async def signin(request: Request, response: Response, form_data: SigninForm):
             "role": user.role,
             "profile_image_url": user.profile_image_url,
             "permissions": user_permissions,
+            "is_email_verified": getattr(user_profile, "is_email_verified"),
         }
     else:
         raise HTTPException(400, detail=ERROR_MESSAGES.INVALID_CRED)
@@ -657,15 +666,8 @@ async def signup(request: Request, response: Response, form_data: SignupForm):
                 # Disable signup after the first user is created
                 request.app.state.config.ENABLE_SIGNUP = False
 
-            # Create user profile and set the charity
-            user_profile = UserProfiles.set_user_charity(user.id, getattr(charity, "id", None))
-
-            if charity and user_profile:
-                charity_domain = charity.get_website_domain()
-                user_email_domain = user_profile.get_email_domain(user=user)
-                if charity_domain is not None and user_email_domain is not None:
-                    if charity_domain == user_email_domain:
-                        user = Users.update_user_role_by_id(user.id, 'user')
+            # DEV process signup
+            user, user_profile = process_signup(request=request, user=user, charity=charity)
 
             return {
                 "token": token,
@@ -677,6 +679,7 @@ async def signup(request: Request, response: Response, form_data: SignupForm):
                 "role": user.role,
                 "profile_image_url": user.profile_image_url,
                 "permissions": user_permissions,
+                "is_email_verified": getattr(user_profile, "is_email_verified", False),
             }
         else:
             raise HTTPException(500, detail=ERROR_MESSAGES.CREATE_USER_ERROR)
@@ -769,7 +772,7 @@ async def add_user(form_data: AddUserForm, user=Depends(get_admin_user)):
 
         if user:
             charity_id = getattr(form_data, "charity_id", None)
-            UserProfiles.set_user_charity(user.id, charity_id)
+            UserProfiles.update_or_create_user_profile(user.id, charity_id, None)
 
             token = create_token(data={"id": user.id})
             return {
