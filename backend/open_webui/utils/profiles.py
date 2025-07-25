@@ -3,6 +3,7 @@ import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Any
+from urllib.parse import quote
 
 import boto3
 from fastapi import Request
@@ -36,9 +37,9 @@ def send_verification_email(request: Request, email: str):
     token = serializer.dumps(email, salt="email-confirmation-salt")
 
     if FRONTEND_BASE_URL:
-        url = f"{FRONTEND_BASE_URL}verify?token={token}"
+        url = f"{FRONTEND_BASE_URL}verify?token={quote(token)}"
     else:
-        url = f"{request.base_url}verify?token={token}"
+        url = f"{request.base_url}verify?token={quote(token)}"
 
     msg = MIMEMultipart()
     msg["Subject"] = "Verify your email"
