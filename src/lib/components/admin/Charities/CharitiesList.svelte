@@ -27,7 +27,7 @@
 	let total = null;
 
 	let query = '';
-	let orderBy = 'name';
+	let orderBy = 'id';
 	let direction = 'asc';
 
 	let selectedCharity = null;
