@@ -37,10 +37,14 @@ class CharityModel(BaseModel):
         website = getattr(self, "website", None)
         if not website:
             return None
+        if "://" not in website:
+            website = "http://" + website
         parsed = urlparse(website)
         domain = parsed.hostname
+
         if not domain:
             return None
+
         domain = domain.lower()
         if domain.startswith("www."):
             domain = domain[4:]

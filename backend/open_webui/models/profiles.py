@@ -1,10 +1,14 @@
+import logging
 from typing import Optional
 
 from open_webui.internal.db import Base, get_db
 from open_webui.models.charities import CharityModel
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Boolean, Column, ForeignKey, Integer
-from sqlalchemy.orm import relationship
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session, relationship
+
+logger = logging.getLogger(__name__)
 
 
 class UserProfile(Base):
@@ -45,33 +49,50 @@ class UserProfileModel(BaseModel):
 
 
 class UserProfileTable:
+
+    def assign_charity(
+        self, db: Session, user_id: str, charity_id: Optional[int]
+    ) -> Optional[UserProfile]:
+        """
+        Assign or clear a user's charity within an existing DB session.
+        Does not commit — caller is responsible for commit/rollback.
+        Returns ORM profile or None if user not found.
+        """
+        from open_webui.models.users import User
+
+        user = db.query(User).filter_by(id=user_id).first()
+        if not user:
+            return None
+
+        profile = db.query(UserProfile).filter_by(user_id=user_id).first()
+        if not profile:
+            profile = UserProfile(user_id=user_id)
+            db.add(profile)
+
+        profile.charity_id = charity_id
+        db.flush()
+        return profile
+
     def set_user_charity(
         self, user_id: str, charity_id: Optional[int]
     ) -> Optional[UserProfileModel]:
         """
         Set the user's charity. Creates a UserProfile for the user if it does not exist.
         """
-        from open_webui.models.users import User
 
+        db = None
         try:
             with get_db() as db:
-                # Check if user exists
-                user = db.query(User).filter_by(id=user_id).first()
-                if not user:
-                    return False
+                profile = self.assign_charity(db, user_id, charity_id)
+                if profile is None:
+                    return None
 
-                # Get or create the UserProfile
-                user_profile = db.query(UserProfile).filter_by(user_id=user_id).first()
-                if not user_profile:
-                    user_profile = UserProfile(user_id=user_id)
-                    db.add(user_profile)
-
-                user_profile.charity_id = charity_id
                 db.commit()
-                db.refresh(user_profile)
-                return UserProfileModel.model_validate(user_profile)
-        except Exception as e:
-            print("Error in set_user_charity:", e)
+                db.refresh(profile)
+                return UserProfileModel.model_validate(profile)
+        except SQLAlchemyError:
+            if db is not None:
+                db.rollback()
             return None
 
 
