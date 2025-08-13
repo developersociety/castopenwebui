@@ -16,6 +16,7 @@ def import_from_csv(path):
                 email = row.get("Email", "").strip()
                 if not charity_id or not name:
                     print(f"Skipping row with missing charity_id or name: {row}")
+                    continue
                 charity = Charity(
                     name=name,
                     charity_id=charity_id,
@@ -24,8 +25,8 @@ def import_from_csv(path):
                     is_imported=True,
                 )
                 charities.append(charity)
-    db.add_all(charities)
-    db.commit()
+            db.add_all(charities)
+            db.commit()
     print("Import complete.")
 
 

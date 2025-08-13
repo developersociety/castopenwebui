@@ -80,12 +80,11 @@ class CharitiesTable:
                 return None
 
     def get_charity_by_id(self, id: int) -> Optional[CharityModel]:
-        try:
-            with get_db() as db:
-                charity = db.query(Charity).filter_by(id=id).first()
-                return CharityModel.model_validate(charity)
-        except Exception:
-            return None
+        with get_db() as db:
+            charity = db.query(Charity).filter_by(id=id).first()
+            if charity is None:
+                return None
+            return CharityModel.model_validate(charity)
 
     def get_charities(
         self,
