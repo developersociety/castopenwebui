@@ -6,7 +6,7 @@
 
 	import { WEBUI_BASE_URL } from '$lib/constants';
 
-	import CharityAutocomplete from '$lib/components/CharityAutocomplete.svelte';
+  import CharityAutocomplete from '$lib/components/CharityAutocomplete.svelte';
 	import Spinner from '$lib/components/common/Spinner.svelte';
 	import Modal from '$lib/components/common/Modal.svelte';
 	import { generateInitialsImage } from '$lib/utils';
@@ -38,6 +38,7 @@
 			role: 'user',
 			profile: null
 		};
+    selectedCharity = null;
 	}
 
 	const submitHandler = async () => {

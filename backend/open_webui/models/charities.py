@@ -104,9 +104,7 @@ class CharitiesTable:
                 order_by = filter.get("order_by")
                 direction = filter.get("direction")
 
-                if order_by == "id":
-                    query = query.order_by(Charity.id.desc())
-                elif order_by == "name":
+                if order_by == "name":
                     if direction == "asc":
                         query = query.order_by(Charity.name.asc())
                     else:

@@ -4,6 +4,7 @@ from open_webui.internal.db import Base, get_db
 from open_webui.models.charities import CharityModel
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import relationship
 
 
@@ -14,7 +15,7 @@ class UserProfile(Base):
     charity_id = Column(Integer, ForeignKey("charity.id"))
     charity = relationship("Charity")
 
-    user_id = Column(Integer, ForeignKey("user.id"))
+    user_id = Column(Integer, ForeignKey("user.id"), unique=True)
     user = relationship("User", back_populates="profile")
 
 
@@ -36,6 +37,7 @@ class UserProfileTable:
         """
         from open_webui.models.users import User
 
+        db = None
         try:
             with get_db() as db:
                 # Check if user exists
@@ -52,8 +54,9 @@ class UserProfileTable:
                 user_profile.charity_id = charity_id
                 db.commit()
                 return True
-        except Exception as e:
-            print("Error in set_user_charity:", e)
+        except SQLAlchemyError:
+            if db is not None:
+                db.rollback()
             return False
 
 

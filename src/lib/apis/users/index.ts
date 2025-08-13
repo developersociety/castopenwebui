@@ -408,7 +408,7 @@ type UserUpdateForm = {
 	email: string;
 	name: string;
 	password: string;
-	profile: null;
+  profile: { charity?: { id: number } } | null;
 };
 
 export const updateUserById = async (token: string, userId: string, user: UserUpdateForm) => {

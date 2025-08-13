@@ -404,7 +404,7 @@ async def update_user_by_id(
             },
         )
 
-        if updated_user:
+        if updated_user and getattr(form_data, "profile", None) is not None:
             profile = getattr(form_data, "profile", None)
             charity = getattr(profile, "charity", None)
             charity_id = getattr(charity, "id", None)
